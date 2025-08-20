@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pranay Reddy Cheruku - Interactive Resume</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" rel="stylesheet">
+    <!-- Chosen Palette: "Modern Professional" - A clean palette with a light gray-beige background, dark charcoal text, and a sophisticated blue accent. -->
+    <!-- Application Structure Plan: The SPA is designed as a single-page vertical scroll experience, which is intuitive for resume content. It's structured thematically: Hero, Skills, Experience, Projects, Certifications, and Contact. This non-linear navigation via a sticky header allows recruiters to jump to sections of interest instantly. The key interactions—a skills radar chart and filterable project cards—are designed to provide layered information, allowing users to get a quick overview and then dive deeper. This structure is more engaging and user-centric than a static document, facilitating faster evaluation of the candidate's profile. -->
+    <!-- Visualization & Content Choices: 
+        - Skills Table -> Goal: Compare proficiency -> Viz: Interactive Radar Chart (Chart.js/Canvas) -> Interaction: Hover to view details -> Justification: Visually summarizes diverse skills more effectively than a long table, highlighting strengths in key areas at a glance.
+        - Experience List -> Goal: Show career progression -> Viz: Vertical Timeline (HTML/Tailwind) -> Interaction: Click to expand details -> Justification: A timeline is a universally understood and visually clean way to present chronological data. The accordion-style interaction prevents information overload.
+        - Key Projects List -> Goal: Organize and showcase work -> Viz: Filterable Card Grid (HTML/Tailwind/JS) -> Interaction: Filter buttons (All, Salesforce, Java) -> Justification: Allows users to tailor the content to their specific needs, demonstrating focused expertise.
+        - Certifications List -> Goal: Inform/Validate -> Viz: Icon-based Grid (HTML/Tailwind) -> Interaction: Static -> Justification: A clean, scannable grid with visual cues is sufficient for this type of data.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            background-color: #F5F5F3;
+            color: #333333;
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 550px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 450px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 450px;
+            }
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -31px;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background-color: #D1D5DB;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -38px;
+            top: 4px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #3B82F6;
+            border: 3px solid #F5F5F3;
+        }
+        .project-card, .cert-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .project-card:hover, .cert-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.07);
+        }
+        .filter-btn.active {
+            background-color: #3B82F6;
+            color: white;
+            border-color: #3B82F6;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/90 backdrop-blur-lg shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="#" class="text-xl font-extrabold text-gray-800">PRANAY REDDY CHERUKU</a>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#skills" class="text-gray-600 hover:text-blue-600 transition font-medium">Skills</a>
+                <a href="#experience" class="text-gray-600 hover:text-blue-600 transition font-medium">Experience</a>
+                <a href="#projects" class="text-gray-600 hover:text-blue-600 transition font-medium">Projects</a>
+                <a href="#contact" class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition font-medium">Contact</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden focus:outline-none text-2xl">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 border-t">
+            <a href="#skills" class="block py-2 text-gray-600 hover:text-blue-600 transition">Skills</a>
+            <a href="#experience" class="block py-2 text-gray-600 hover:text-blue-600 transition">Experience</a>
+            <a href="#projects" class="block py-2 text-gray-600 hover:text-blue-600 transition">Projects</a>
+            <a href="#contact" class="block py-2 text-gray-600 hover:text-blue-600 transition">Contact</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-16">
+        <section id="hero" class="text-center mb-24">
+            <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4 leading-tight">Salesforce & Java Backend Developer</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+                With over 6 years of experience, I architect and build robust, scalable enterprise solutions by combining the power of the Salesforce platform with high-performance Java microservices.
+            </p>
+        </section>
+
+        <section id="skills" class="mb-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Core Competencies</h2>
+                <p class="mt-3 text-gray-600 max-w-2xl mx-auto">This chart offers a dynamic view of my technical expertise. It illustrates a strong, balanced proficiency across critical development domains, from backend systems and cloud platforms to specialized Salesforce technologies. Hover over any point to see the details.</p>
+            </div>
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+                <div class="chart-container">
+                    <canvas id="skillsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="experience" class="mb-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Professional Journey</h2>
+                <p class="mt-3 text-gray-600 max-w-2xl mx-auto">An interactive timeline of my career, showcasing my progression and key responsibilities at each stage. Click on any role to expand and see the detailed contributions and technologies used.</p>
+            </div>
+            <div class="max-w-3xl mx-auto">
+                <div class="relative pl-8">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="mb-10 experience-item">
+                            <div class="flex justify-between items-center cursor-pointer experience-header">
+                                <h3 class="text-xl font-bold text-gray-800">MTX Group Inc.</h3>
+                                <span class="text-sm font-medium text-gray-500">Sep 2021 – Present</span>
+                            </div>
+                            <p class="text-md font-medium text-blue-600 mb-2">Consultant - Salesforce & Java Backend Developer</p>
+                            <div class="experience-details hidden mt-3 space-y-2 text-gray-700">
+                                <p>Led design and implementation of hybrid Salesforce-Java solutions for enterprise grants management, childcare, and licensing applications.</p>
+                                <p>Developed scalable LWC, Apex classes, and OmniStudio components (FlexCards, DataRaptors).</p>
+                                <p>Engineered secure JWT-based Java services for data encryption and led API integrations with DocuSign and Google Maps.</p>
+                                <p>Optimized CI/CD pipelines using GitLab, Jenkins, and SFDX.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="mb-10 experience-item">
+                            <div class="flex justify-between items-center cursor-pointer experience-header">
+                                <h3 class="text-xl font-bold text-gray-800">Accenture</h3>
+                                <span class="text-sm font-medium text-gray-500">Jan 2021 – Sep 2021</span>
+                            </div>
+                            <p class="text-md font-medium text-blue-600 mb-2">Associate Java Developer</p>
+                            <div class="experience-details hidden mt-3 space-y-2 text-gray-700">
+                                <p>Built REST APIs with Spring Boot for a telecom customer onboarding system, integrating third-party KYC services.</p>
+                                <p>Designed microservices for an insurance claims engine, implementing Hystrix circuit breakers for fault tolerance.</p>
+                                <p>Utilized MongoDB for dynamic business rule storage.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="mb-10 experience-item">
+                            <div class="flex justify-between items-center cursor-pointer experience-header">
+                                <h3 class="text-xl font-bold text-gray-800">Tufts Health Plan</h3>
+                                <span class="text-sm font-medium text-gray-500">Oct 2019 - Jul 2021</span>
+                            </div>
+                            <p class="text-md font-medium text-blue-600 mb-2">Java Backend Developer</p>
+                            <div class="experience-details hidden mt-3 space-y-2 text-gray-700">
+                                <p>Developed a "Scoring Model Manager" API using Spring Boot to empower underwriting analysts.</p>
+                                <p>Led the migration of messaging systems from IBM MQ to Apache Kafka, creating Kafka adapters to decouple applications.</p>
+                                <p>Managed CRUD operations on Cassandra and Oracle databases via RESTful services.</p>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="experience-item">
+                            <div class="flex justify-between items-center cursor-pointer experience-header">
+                                <h3 class="text-xl font-bold text-gray-800">Cox Communications</h3>
+                                <span class="text-sm font-medium text-gray-500">Oct 2018 – Sep 2019</span>
+                            </div>
+                            <p class="text-md font-medium text-blue-600 mb-2">Java Developer</p>
+                            <div class="experience-details hidden mt-3 space-y-2 text-gray-700">
+                                <p>Developed microservices using Spring Boot and Spring Data JPA.</p>
+                                <p>Deployed applications to AWS using Elastic Beanstalk and configured CI/CD pipelines with Jenkins.</p>
+                                <p>Coded PL/SQL and PostgreSQL stored procedures and configured AWS S3 and CloudWatch for monitoring.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="mb-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Project Showcase</h2>
+                <p class="mt-3 text-gray-600 max-w-2xl mx-auto">A selection of projects that demonstrate my ability to tackle complex challenges. Use the filters to sort by the core technology and explore my work in different domains.</p>
+            </div>
+            <div class="flex justify-center space-x-2 md:space-x-4 mb-8">
+                <button class="filter-btn active px-4 py-2 rounded-full font-medium border-2 border-gray-300 transition" data-filter="all">All</button>
+                <button class="filter-btn px-4 py-2 rounded-full font-medium border-2 border-gray-300 transition" data-filter="salesforce">Salesforce</button>
+                <button class="filter-btn px-4 py-2 rounded-full font-medium border-2 border-gray-300 transition" data-filter="java">Java</button>
+            </div>
+            <div id="project-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="project-card bg-white p-6 rounded-xl shadow-lg" data-category="salesforce java">
+                    <div class="text-xs font-bold uppercase text-blue-600 mb-2">Hybrid</div>
+                    <h3 class="text-xl font-bold mb-2">Enterprise LPI System</h3>
+                    <p class="text-gray-700">Developed a hybrid Salesforce-Java module, integrating Kafka for real-time data updates to improve system responsiveness.</p>
+                </div>
+                <div class="project-card bg-white p-6 rounded-xl shadow-lg" data-category="salesforce">
+                    <div class="text-xs font-bold uppercase text-green-600 mb-2">Salesforce</div>
+                    <h3 class="text-xl font-bold mb-2">Montana DPHHS Child Care</h3>
+                    <p class="text-gray-700">Built encrypted Apex services and integrated Salesforce Lightning with Java microservices for enhanced data security.</p>
+                </div>
+                <div class="project-card bg-white p-6 rounded-xl shadow-lg" data-category="java">
+                    <div class="text-xs font-bold uppercase text-orange-600 mb-2">Java</div>
+                    <h3 class="text-xl font-bold mb-2">Missouri Child Care Subsidy</h3>
+                    <p class="text-gray-700">Developed Java-based geolocation services consumed by Salesforce for high-accuracy address validation.</p>
+                </div>
+                <div class="project-card bg-white p-6 rounded-xl shadow-lg" data-category="salesforce">
+                     <div class="text-xs font-bold uppercase text-green-600 mb-2">Salesforce</div>
+                    <h3 class="text-xl font-bold mb-2">NYC DoITT Grants System</h3>
+                    <p class="text-gray-700">Designed and integrated complex OmniStudio flows with Spring Boot backend APIs to streamline grant management.</p>
+                </div>
+                 <div class="project-card bg-white p-6 rounded-xl shadow-lg" data-category="java">
+                    <div class="text-xs font-bold uppercase text-orange-600 mb-2">Java</div>
+                    <h3 class="text-xl font-bold mb-2">Telecom Customer Onboarding</h3>
+                    <p class="text-gray-700">Built REST APIs with Spring Boot and JPA for a seamless, automated customer onboarding experience.</p>
+                </div>
+                 <div class="project-card bg-white p-6 rounded-xl shadow-lg" data-category="java">
+                    <div class="text-xs font-bold uppercase text-orange-600 mb-2">Java</div>
+                    <h3 class="text-xl font-bold mb-2">Claims Processing Engine</h3>
+                    <p class="text-gray-700">Designed resilient microservices for claim validation with Hystrix fallback logic for an insurance client.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="certifications" class="mb-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Certifications & Education</h2>
+                 <p class="mt-3 text-gray-600 max-w-2xl mx-auto">My commitment to continuous learning is reflected in my certifications and academic background.</p>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 text-center">
+                <div class="cert-card bg-white p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
+                    <i class="fab fa-salesforce text-4xl text-blue-500 mb-3"></i>
+                    <h4 class="font-bold">Platform Developer I</h4>
+                </div>
+                <div class="cert-card bg-white p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
+                    <i class="fas fa-user-shield text-4xl text-blue-500 mb-3"></i>
+                    <h4 class="font-bold">Administrator</h4>
+                </div>
+                <div class="cert-card bg-white p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
+                    <i class="fas fa-cogs text-4xl text-blue-500 mb-3"></i>
+                    <h4 class="font-bold">OmniStudio Consultant</h4>
+                </div>
+                <div class="cert-card bg-white p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
+                    <i class="fas fa-cubes text-4xl text-blue-500 mb-3"></i>
+                    <h4 class="font-bold">App Builder</h4>
+                </div>
+                <div class="cert-card bg-white p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
+                    <i class="fas fa-robot text-4xl text-blue-500 mb-3"></i>
+                    <h4 class="font-bold">AI Associate</h4>
+                </div>
+                <div class="cert-card bg-white p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
+                    <i class="fab fa-aws text-4xl text-orange-500 mb-3"></i>
+                    <h4 class="font-bold">Cloud Practitioner</h4>
+                </div>
+                <div class="cert-card bg-white p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
+                    <i class="fab fa-java text-4xl text-red-500 mb-3"></i>
+                    <h4 class="font-bold">Oracle Certified Associate</h4>
+                </div>
+                <div class="cert-card bg-white p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
+                    <i class="fas fa-graduation-cap text-4xl text-gray-600 mb-3"></i>
+                    <h4 class="font-bold">B.Tech, CSE</h4>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="text-center bg-white p-10 md:p-16 rounded-xl shadow-lg">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Let's Build Something Great</h2>
+            <p class="text-gray-600 mb-8 max-w-xl mx-auto">I'm actively seeking new opportunities and challenges. If you have a project in mind or think I'd be a good fit for your team, I'd love to connect.</p>
+            <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                <a href="mailto:cherukupranay@gmail.com" class="bg-blue-600 text-white px-6 py-3 rounded-full hover:bg-blue-700 transition font-bold text-lg flex items-center shadow-md">
+                    <i class="fas fa-envelope mr-3"></i> Email Me
+                </a>
+                <a href="https://clever-peony-17029c.netlify.app/" target="_blank" class="bg-gray-800 text-white px-6 py-3 rounded-full hover:bg-gray-900 transition font-bold text-lg flex items-center shadow-md">
+                    <i class="fas fa-globe mr-3"></i> View Portfolio
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-6 mt-12">
+        <p class="text-gray-500">&copy; 2025 Pranay Reddy Cheruku. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+            const skillsChartCtx = document.getElementById('skillsChart').getContext('2d');
+            const skillsChart = new Chart(skillsChartCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Java & Spring Boot', 'Salesforce Platform', 'Microservices & APIs', 'Databases', 'DevOps & CI/CD', 'Web Technologies'],
+                    datasets: [{
+                        label: 'Proficiency',
+                        data: [90, 88, 85, 82, 80, 75],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(59, 130, 246, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.dataset.label}: ${context.raw}%`
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: { font: { size: 13, weight: 'bold' }, color: '#333' },
+                            ticks: {
+                                backdropColor: 'transparent',
+                                color: '#777',
+                                stepSize: 20,
+                                callback: (value) => value + '%'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const projectCards = document.querySelectorAll('.project-card');
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const filter = btn.dataset.filter;
+                    projectCards.forEach(card => {
+                        card.style.display = (filter === 'all' || card.dataset.category.includes(filter)) ? 'block' : 'none';
+                    });
+                });
+            });
+            
+            const experienceItems = document.querySelectorAll('.experience-item');
+            experienceItems.forEach(item => {
+                const header = item.querySelector('.experience-header');
+                const details = item.querySelector('.experience-details');
+                header.addEventListener('click', () => {
+                    details.classList.toggle('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
